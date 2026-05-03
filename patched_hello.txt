@@ -1,1 +1,1 @@
-i've patched simple, Hello world program written in c, to "Holly world". (binary patch!).
+i've patched simple, "Hello world" program written in c, to "Holly world". (binary patch!).
