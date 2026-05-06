@@ -1,8 +1,8 @@
 # reverse-project
 🔍 Reverse Project
 
-git clone https://github.com
-cd reverse-project
+`git clone https://github.com/krishnendu-Vision/reverse-project.git
+cd reverse-project`
 
 
 This is my personal playground for reverse engineering and low-level tinkering. It’s basically a collection of everything I’ve learned while trying to take things apart, see how they tick, and (occasionally) put them back together in ways they weren't intended to work.
