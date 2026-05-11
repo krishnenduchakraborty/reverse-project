@@ -65,7 +65,7 @@ public class Main {
                     mul.show(dou, dou1);
                     break;
                 case 5:
-                    System.out.println("Thank you for using calculator");
+                    System.out.println("Thank you for using calculator!");
                     return;
                 default:
                     System.err.println("Please choose valid option!");
