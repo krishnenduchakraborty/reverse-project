@@ -6,14 +6,14 @@ git_automation() {
     echo "[+]Listing files and directories!"
     ls
     echo "[+]Waiting for two seconds..!"
-    sleep 2
+    sleep 2 
+    echo "[+]Pulling origin main and rebasing!"
+    git pull --rebase origin main
     echo "[+]Adding all files!"
     git add .
     echo "[+]Adding commit message!"
     git commit -m 'Updating files!'
     echo "[+]Pushing to the, origin main!"
     git push origin main
-    echo "[+]Pulling origin main and rebasing!"
-    git pull --rebase origin main
 }
 git_automation
