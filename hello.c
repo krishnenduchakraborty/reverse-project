@@ -3,6 +3,7 @@
 //Testing git automation
 //Again Testing git automation
 //Final git automation Testing
+//Checking files auto update
 int main() {
     printf("Hello world!\n");
 
