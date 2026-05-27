@@ -3,7 +3,7 @@ import java.util.Scanner;
 public class Main {
     public static final Scanner sc = new Scanner(System.in);
     public static void main(String[] args) {
-       //public static Scanner sc = new Scanner(System.in);
+
         Addition addi = new Addition();
         Subtraction sub = new Subtraction();
         Division div = new Division();
@@ -21,8 +21,12 @@ public class Main {
             String option = sc.nextLine();
 
            int statusCode = switch (option) {
+<<<<<<< HEAD
                 case "1" ->  {
                     System.out.println("\n---This is addition section---\n");
+=======
+                case "1" -> {                  System.out.println("---This is addition section---");
+>>>>>>> ca896a6 (Update, code formatting!)
 
                     System.out.print("Enter first number: ");
                     double a = Double.parseDouble(sc.nextLine());
