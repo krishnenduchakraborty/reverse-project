@@ -21,12 +21,12 @@ public class Main {
             String option = sc.nextLine();
 
            int statusCode = switch (option) {
-<<<<<<< HEAD
+
                 case "1" ->  {
                     System.out.println("\n---This is addition section---\n");
-=======
+
                 case "1" -> {                  System.out.println("---This is addition section---");
->>>>>>> ca896a6 (Update, code formatting!)
+
 
                     System.out.print("Enter first number: ");
                     double a = Double.parseDouble(sc.nextLine());
