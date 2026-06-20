@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
     
-    // Scroll Spy
+    // Scroll Spy (Active Navigation Highlight)
     const sections = document.querySelectorAll("section");
     const navLinks = document.querySelectorAll("nav a");
 
@@ -11,19 +11,19 @@ document.addEventListener("DOMContentLoaded", () => {
             const sectionTop = section.offsetTop;
             const sectionHeight = section.clientHeight;
             
-            // Check scroll position
+            // Check current scroll position
             if (pageYOffset >= (sectionTop - sectionHeight / 3)) {
                 currentSectionId = section.getAttribute("id");
             }
         });
 
         navLinks.forEach(link => {
-            link.style.backgroundColor = ""; // Reset
-            link.style.color = "";
+            link.style.backgroundColor = ""; // Reset background
+            link.style.color = "";           // Reset text color
             
             if (link.getAttribute("href") === `#${currentSectionId}`) {
-                link.style.backgroundColor = "#2563eb"; // Active background
-                link.style.color = "#ffffff";           // Active text color
+                link.style.backgroundColor = "#2563eb"; 
+                link.style.color = "#ffffff";           
             }
         });
     });

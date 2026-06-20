@@ -2,10 +2,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
 
 :root {
-    --primary: #2563eb;       /* Modern Blue */
+    --primary: #2563eb;       
     --primary-hover: #1d4ed8;
-    --bg-color: #f8fafc;      /* Light Gray/Blue background */
-    --text-color: #1e293b;    /* Dark Slate text */
+    --bg-color: #f8fafc;      
+    --text-color: #1e293b;    
     --card-bg: #ffffff;
     --border-color: #e2e8f0;
 }
@@ -17,7 +17,7 @@
 }
 
 html {
-    scroll-behavior: smooth; /* স্মুথ স্ক্রোলিং এর জন্য */
+    scroll-behavior: smooth; 
 }
 
 body {
@@ -130,7 +130,7 @@ img[alt="krishna-image"]:hover {
     transform: scale(1.03);
 }
 
-/* --- Table Styling (Professional & Clean) --- */
+/* --- Table Styling --- */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -166,6 +166,46 @@ table tr:last-child {
 
 table tr:hover {
     background-color: #f1f5f9;
+}
+
+/* --- Contact Info Layout --- */
+.contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.contact-item {
+    font-size: 1rem;
+    padding: 8px 12px;
+    background: #f1f5f9;
+    border-radius: 6px;
+    width: fit-content;
+}
+
+.contact-item a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.contact-item a:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+}
+
+/* --- About Content Styling --- */
+.about-content p {
+    margin-bottom: 15px;
+    font-size: 1rem;
+    color: #334155;
+    text-align: justify;
+}
+
+.about-content strong {
+    color: var(--primary);
 }
 
 /* --- Lists & Footer --- */
