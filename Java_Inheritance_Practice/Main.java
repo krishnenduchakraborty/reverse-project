@@ -37,6 +37,7 @@ public class Main {
     child.motherAgeProcess();
     child.nameProcess();
     child.childAgeProcessor();
+    System.out.println("Entered age of child: " + child.getChildAge());
     System.out.println("Entered name: " + child.getName());
 
     System.out.println("Do you want to continue?(yes/no)");
