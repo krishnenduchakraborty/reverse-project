@@ -2,7 +2,7 @@ package gun_forever.company;
 
 import gun_forever.gun_list.GunList;
 import gun_forever.services.PaymentServices;
-import gun_forever.services.DelivaryServices;
+import gun_forever.services.DeliveryServices;
 
 public class Main {
   public static void main(String[] args) {

@@ -6,14 +6,9 @@ import gun_forever.services.PaymentServices;
 import gun_forever.gun_list.GunList;
 
 public class GunRuleCom extends GunList implements PaymentServices {
-  private int amount = 0;
-  private int attempts = 3;
-  public boolean isRunning = true;
+  private boolean isRunning = true;
   private String gunName;
-  private int payableAmount;  
-  private int provider;
-  private String name;
-  private String adress;
+  private int payableAmount;
   Scanner scanner = new Scanner(System.in);
 
   @Override
@@ -27,37 +22,31 @@ public class GunRuleCom extends GunList implements PaymentServices {
     System.out.println("[4]Exit!\n");
     System.out.print("Choose Gun Or Exit: ");
 
-    int choice = 0;
-    try {
-      choice = Integer.parseInt(scanner.nextLine());
-    }
-    catch (NumberFormatException e) {
-      System.out.println("\nPlease enter value only!");
-      continue;
-    }
+    int choice = readIntInput();
 
+    //if(choice == 4) isRunning=false;
     if(choice <= 0) {
-      System.out.println("\nOption can't be <= 0!");
+      System.out.println("\nChoice can't be <= 0!");
       continue;
     }
     else if(choice == 1) {
       this.gunName="AK47 AssultRifle";
       System.out.println("\nThank you for choosing " + gunName);
-      System.out.println("Redirecting to the payment gateway!");
+      System.out.println("Redirecting to payment gateway!");
       this.payableAmount=5000;
       paymetMethod();
     }
     else if(choice == 2) {
       this.gunName="M4A1 Automatic";
       System.out.println("\nThank you for choosing " + gunName);
-      System.out.println("Redirecting to the payment gateway!");
+      System.out.println("Redirecting to payment gateway!");
       this.payableAmount=12000;
       paymetMethod();
     }
     else if(choice == 3) {
       this.gunName="Kar98 Sniper";
       System.out.println("\nThank you for choosing " + gunName);
-      System.out.println("Redirecting to the payment gateway!");
+      System.out.println("Redirecting to payment gateway!");
       this.payableAmount=20000;
       paymetMethod();
     }
@@ -90,13 +79,13 @@ public class GunRuleCom extends GunList implements PaymentServices {
     switch(option) {
       case 1 :
         sbiPayment();
-      break;
+        return;
       case 2 :
         axisPayment();
-      break;
+        return;
       case 3 :
         paypalPayment();
-      break;
+        return;
       case 4 :
         System.out.println("Exiting payment getway!");
         return;
@@ -107,129 +96,86 @@ public class GunRuleCom extends GunList implements PaymentServices {
     }
   }
 
+  private void processPayment(String bankName) {
+    int attempts = 3;
+    while(isRunning) {
+      System.out.println(bankName + " Payment gateway!");
+      System.out.println(payableAmount + " To be payed for " + gunName);
+      System.out.print("Enter Payable: ");
+      int amount = readIntInput();
+      if(amount==payableAmount) {
+        System.out.println("Payment verified!");
+        System.out.println("Redirecting to delevery portal!");
+        infoGatheringAlgorithm();
+        break;
+      }
+      else {
+        attempts--;
+        System.out.println("Attempts left " + attempts);
+      }
+    }
+  }
+
+  private int readIntInput() {
+    try {
+      return Integer.parseInt(scanner.nextLine());
+    }
+    catch (NumberFormatException e) {
+      System.err.println("Please enter value only!");
+      return -1;
+    }
+  }
+
   @Override
   public void sbiPayment() {
-    while(isRunning) {
-    System.out.println("SBI PAYMENT GATEWAY");
-    System.out.println(payableAmount + " Amount to be payed for " + gunName);
-    System.out.print("Enter Payable: ");
-
-    try {
-      amount = Integer.parseInt(scanner.nextLine());
-    }
-    catch(NumberFormatException e) {
-      System.out.println("Please enter value only!");
-      continue;
-    }
-
-    if(amount==payableAmount) {
-      System.out.println("Payment verified!");
-      System.out.println("Redirecting to delivary gateway;");
-      infoGatheringAlgorithm();
-      gunlist();
-    }
-    else {
-      attempts--;
-    }
-
-    if(attempts==0) {isRunning=false;}
-
-    }
-    scanner.close();
+    processPayment("SBI");
   }
 
   @Override
   public void paypalPayment() {
-    while(isRunning) {
-    System.out.println("PAYPAL PAYMENT GATEWAY");
-    System.out.println(payableAmount + " Amount to be payed for " + gunName);
-    System.out.print("Enter Payable: ");
-
-    try{
-      amount = Integer.parseInt(scanner.nextLine());
-    }
-    catch(NumberFormatException e) {
-      System.out.println("Please enter value only!");
-      continue;
-    }
-
-    if(amount==payableAmount) {
-      System.out.println("Payment verified!");
-      System.out.println("Redirecting to the delivary gateway!");
-    }
-    else {
-      attempts--;
-    }
-
-    if(attempts == 0) {isRunning=false;}
-
-    }
-    scanner.close();
+    processPayment("PAYPAL");
   }
 
   @Override
   public void axisPayment() {
-    while (isRunning) {
-    System.out.println("AXIS PAYMENT GATEWAY");
-    System.out.println(payableAmount + " Amount to be payed for " + gunName);
-    System.out.print("Enter Payable: ");
-
-    try{
-      amount = Integer.parseInt(scanner.nextLine());
-    }
-    catch(NumberFormatException e) {
-      System.err.println("Please enter value only!");
-      continue;
-    }
-
-    if(amount==payableAmount) {
-      System.out.println("Payment verified!");
-      System.out.println("Redirecting to the delivary gateway!");
-      //ekart();
-    }
-    else {
-      attempts--;
-    }
-
-    if(attempts==0) {isRunning=false;}
-    }
-    scanner.close();
+    processPayment("AXIS");
   }
 
   @Override
-  public void infoGatheringAlgorithm() {  
+  public void infoGatheringAlgorithm() {
     while(isRunning) {
     System.out.println("===NAME & ADRESS RECORDER===");
     System.out.println("===Fill Info===");
     System.out.print("Enter your name: ");
-    name = scanner.nextLine();
-    System.out.println("Enter your adress: ");
-    adress = scanner.nextLine();
+    String name = scanner.nextLine();
+    System.out.print("Enter your adress: ");
+    String address = scanner.nextLine();
 
     System.out.println("===All Info Recorded===");
-    System.out.println(name + ", Please choose delivary provider");
-    System.out.println("[1] Ekart delivary");
-    System.out.println("[2] Mkart delivary");
+    System.out.println(name + ", Please choose delivery provider.");
+    System.out.println("[1] Ekart delivery");
+    System.out.println("[2] Mkart delivery");
     System.out.println("[0] Exit!");
     System.out.print("Choose Provider or Exit: ");
 
+    int options;
     try {
-      provider = Integer.parseInt(scanner.nextLine());
+      options = Integer.parseInt(scanner.nextLine());
     } catch(NumberFormatException e) {
       System.err.println("Please enter integer only!");
       continue;
     }
 
-      switch(provider) {
+      switch(options) {
         case 1 :
           ekart();
-          break;
+          return;
         case 2 :
           mkart();
-          break;
+          return;
         case 0 :
-          isRunning=false;
-          break;
+          System.out.println("Exiting Delevery Portal!");
+          return;
         default :
           System.out.println("Please enter valid option!");
           continue;
