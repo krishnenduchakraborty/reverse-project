@@ -1,7 +1,7 @@
 package gun_forever.services;
 
 @FunctionalInterface
-public interface DelivaryServices {
+public interface DeliveryServices {
   void ekart();
   void mkart();
 }

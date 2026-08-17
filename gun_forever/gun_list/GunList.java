@@ -1,6 +1,6 @@
 package gun_forever.gun_list;
 
-import java.util.Scanner;
+//import java.util.Scanner;
 //import gun_forever.company.GunRuleCom;
 
 public abstract class GunList {
@@ -10,8 +10,7 @@ public abstract class GunList {
   public abstract void infoGatheringAlgorithm();
 
   public void ekart() {
-    System.out.println("Product will be delivared through ekart!");
-    return;
+    System.out.println("Product will be delivared through ekart!"); 
   }
 
   public void mkart() {
