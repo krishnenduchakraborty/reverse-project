@@ -70,10 +70,12 @@ cmake -G Ninja "$ZIG_DIR/zig-llvm-project/llvm" \
   -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN_FILE" \
   -DANDROID_ABI=arm64-v8a \
   -DANDROID_NATIVE_API_LEVEL="$ANDROID_API_LEVEL" \
-  -DLLVM_ENABLE_PROJECTS="clang;lld;compiler-rt" \
+  -DLLVM_ENABLE_PROJECTS="clang;lld" \
   -DLLVM_TARGETS_TO_BUILD="AArch64" \
   -DLLVM_ENABLE_TERMINFO=OFF \
-  -DLLVM_ENABLE_ZLIB=OFF
+  -DLLVM_ENABLE_ZLIB=OFF \
+  -DLLVM_USE_LINKER=lld \
+  -DCMAKE_VERBOSE_MAKEFILE=ON
 
 echo "Building LLVM (this may take a while)"
 ninja -j$(nproc) install
