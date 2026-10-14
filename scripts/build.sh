@@ -38,15 +38,14 @@ echo "Looking for patch at: $PATCH_PATH"
 if [ -f "$PATCH_PATH" ]; then
   echo "Applying patch: $PATCH_PATH"
   cd "$ZIG_DIR"
-  git apply "$PATCH_PATH" || {
-    echo "Patch apply failed. Showing diagnostics:"
-    echo "Current dir: $(pwd)"
-    echo "List repo root files:"; ls -la "$REPO_ROOT" || true
-    echo "Show first 200 lines of patch file:"; sed -n '1,200p' "$PATCH_PATH" || true
-    git apply --reject --whitespace=fix "$PATCH_PATH" || true
-    git status
-    exit 1
-  }
+  if git apply "$PATCH_PATH"; then
+    echo "Patch applied successfully via git apply"
+  else
+    echo "git apply failed, attempting fallback python patcher"
+    cd "$REPO_ROOT"
+    python3 scripts/ci_patch_apply.py || { echo "fallback patcher failed"; exit 1; }
+    echo "Fallback patcher succeeded"
+  fi
   cd - >/dev/null
 else
   echo "No patch found at $PATCH_PATH; continuing without patch"
