@@ -35,10 +35,12 @@ jobs:
       - name: Download prebuilt LLVM/Clang
         run: |
           mkdir -p ${{ github.workspace }}/work/llvm
-          LLVM_VER=17.0.6
-          curl -sSL https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VER}/clang+llvm-${LLVM_VER}-x86_64-linux-gnu-ubuntu-22.04.tar.xz -o llvm.tar.xz
+          # Use LLVM 21.1.8 release assets (Linux X64 binary)
+          LLVM_VER=21.1.8
+          curl -sSL https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VER}/LLVM-${LLVM_VER}-Linux-X64.tar.xz -o llvm.tar.xz
           tar -xf llvm.tar.xz -C ${{ github.workspace }}/work/llvm
-          echo "PREBUILT_LLVM_ROOT=${{ github.workspace }}/work/llvm/clang+llvm-${LLVM_VER}-x86_64-linux-gnu-ubuntu-22.04" >> $GITHUB_ENV
+          # Release extracts to LLVM-${LLVM_VER}-Linux-X64
+          echo "PREBUILT_LLVM_ROOT=${{ github.workspace }}/work/llvm/LLVM-${LLVM_VER}-Linux-X64" >> $GITHUB_ENV
 
       - name: Run build script (prebuilt LLVM)
         env:
