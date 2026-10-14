@@ -114,6 +114,12 @@ if [ -n "${ANDROID_NDK_HOME:-}" ]; then
   export PATH="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH"
 fi
 
+# If PREBUILT_LLVM_ROOT is set, prefer its bin directory so cmake/find_package and llvm-config
+# resolve to the prebuilt LLVM we downloaded instead of the NDK's llvm-config.
+if [ -n "${PREBUILT_LLVM_ROOT:-}" ]; then
+  export PATH="$PREBUILT_LLVM_ROOT/bin:$PATH"
+fi
+
 # If PREBUILT_LLVM_ROOT is provided, point Zig build to it. Otherwise use INSTALL_PREFIX where we installed LLVM
 if [ -n "$PREBUILT_LLVM_ROOT" ]; then
   echo "Running Zig's build script using prebuilt LLVM at $PREBUILT_LLVM_ROOT"
