@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+set -x
 shopt -s inherit_errexit || true
 
 # REPO_ROOT is the repository root where this script is checked out
