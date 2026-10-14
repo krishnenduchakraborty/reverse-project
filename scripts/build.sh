@@ -158,7 +158,8 @@ if [ -n "$PREBUILT_LLVM_ROOT" ]; then
       cmake -G Ninja "$ZIG_DIR" \
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_INSTALL_PREFIX="$INSTALL_PREFIX" \
-        -DLLVM_ROOT="$PREBUILT_LLVM_ROOT"
+        -DLLVM_ROOT="$PREBUILT_LLVM_ROOT" \
+        -DLLVM_CONFIG_EXECUTABLE="$PREBUILT_LLVM_ROOT/bin/llvm-config"
       ninja -j$(nproc) install || {
         echo "Alternate Zig cmake build failed. Check logs above for errors."
         exit 1
