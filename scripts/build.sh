@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+set -x
 shopt -s inherit_errexit || true
 
 # REPO_ROOT is the repository root where this script is checked out
@@ -122,18 +123,29 @@ if [ -n "$PREBUILT_LLVM_ROOT" ]; then
     for b in ./build ./build.py ./build.sh; do
       if [ -f "$b" ]; then
         echo "Found Zig build script: $b"
-        python3 "$b" -Drelease-safe --prefix "$INSTALL_PREFIX" --llvm-root "${llvm_root_arg}" && return 0 || {
-          echo "Zig build script $b failed; exiting"
-          return 1
-        }
+        # If executable, run it (honor shebang). Otherwise invoke it with python3.
+        if [ -x "$b" ]; then
+          "$b" -Drelease-safe --prefix "$INSTALL_PREFIX" --llvm-root "${llvm_root_arg}" && return 0 || {
+            echo "Zig build script $b failed; exiting"
+            return 1
+          }
+        else
+          python3 "$b" -Drelease-safe --prefix "$INSTALL_PREFIX" --llvm-root "${llvm_root_arg}" && return 0 || {
+            echo "Zig build script $b failed; exiting"
+            return 1
+          }
+        fi
       fi
     done
     echo "No Zig build script found in $PWD"
     ls -la . || true
     return 2
   }
-  if ! run_zig_build "$PREBUILT_LLVM_ROOT"; then
-    rc=$?
+  set +e
+  run_zig_build "$PREBUILT_LLVM_ROOT"
+  rc=$?
+  set -e
+  if [ "$rc" -ne 0 ]; then
     if [ "$rc" -eq 2 ]; then
       echo "No Zig build script found; attempting cmake-based build fallback"
       mkdir -p build.zig && cd build.zig
@@ -150,6 +162,7 @@ if [ -n "$PREBUILT_LLVM_ROOT" ]; then
       exit 1
     fi
   fi
+
 else
   echo "Running Zig's build script using built LLVM at $INSTALL_PREFIX"
   python3 ./build -Drelease-safe --prefix "$INSTALL_PREFIX" --llvm-root "$INSTALL_PREFIX" || {
