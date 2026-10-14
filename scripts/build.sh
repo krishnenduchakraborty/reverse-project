@@ -149,8 +149,6 @@ if [ -n "$PREBUILT_LLVM_ROOT" ]; then
       echo "Zig build script failed; aborting"
       exit 1
     fi
-  }
-
 else
   echo "Running Zig's build script using built LLVM at $INSTALL_PREFIX"
   python3 ./build -Drelease-safe --prefix "$INSTALL_PREFIX" --llvm-root "$INSTALL_PREFIX" || {
