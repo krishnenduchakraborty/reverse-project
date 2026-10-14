@@ -51,7 +51,15 @@ jobs:
           echo "PREBUILT_LLVM_ROOT=${PREBUILT_LLVM_ROOT:-<not-set>}"
           ls -la "${PREBUILT_LLVM_ROOT}" || true
           ls -la "${PREBUILT_LLVM_ROOT}/bin" || true
-          bash scripts/build.sh
+          # Run build and capture logs
+          bash scripts/build.sh 2>&1 | tee build.log
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
 
       - name: Upload built zig
         if: success()
