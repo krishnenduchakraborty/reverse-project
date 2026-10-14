@@ -132,9 +132,23 @@ if [ -n "$PREBUILT_LLVM_ROOT" ]; then
     ls -la . || true
     return 2
   }
-  run_zig_build "$PREBUILT_LLVM_ROOT" || {
-    echo "Zig build script failed when using prebuilt LLVM. Check logs above for errors.";
-    exit 1
+  if ! run_zig_build "$PREBUILT_LLVM_ROOT"; then
+    rc=$?
+    if [ "$rc" -eq 2 ]; then
+      echo "No Zig build script found; attempting cmake-based build fallback"
+      mkdir -p build.zig && cd build.zig
+      cmake -G Ninja "$ZIG_DIR" \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX="$INSTALL_PREFIX" \
+        -DLLVM_ROOT="$PREBUILT_LLVM_ROOT"
+      ninja -j$(nproc) install || {
+        echo "Alternate Zig cmake build failed. Check logs above for errors."
+        exit 1
+      }
+    else
+      echo "Zig build script failed; aborting"
+      exit 1
+    fi
   }
 
 else
