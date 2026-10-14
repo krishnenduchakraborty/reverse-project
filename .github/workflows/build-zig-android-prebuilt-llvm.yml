@@ -46,8 +46,8 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ github.workspace }}/work/android-ndk-r25b
           ANDROID_API_LEVEL: 21
-          PREBUILT_LLVM_ROOT: ${{ github.workspace }}/work/llvm/clang+llvm-${LLVM_VER}-x86_64-linux-gnu-ubuntu-22.04
         run: |
+          echo "Using PREBUILT_LLVM_ROOT from environment (set in previous step via GITHUB_ENV): ${PREBUILT_LLVM_ROOT:-<not-set>}"
           echo "PREBUILT_LLVM_ROOT=${PREBUILT_LLVM_ROOT}"
           echo "ls -la PREBUILT_LLVM_ROOT:"
           ls -la "${PREBUILT_LLVM_ROOT}" || true
