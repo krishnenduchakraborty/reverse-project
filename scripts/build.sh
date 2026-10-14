@@ -123,10 +123,18 @@ if [ -n "$PREBUILT_LLVM_ROOT" ]; then
     for b in ./build ./build.py ./build.sh; do
       if [ -f "$b" ]; then
         echo "Found Zig build script: $b"
-        python3 "$b" -Drelease-safe --prefix "$INSTALL_PREFIX" --llvm-root "${llvm_root_arg}" && return 0 || {
-          echo "Zig build script $b failed; exiting"
-          return 1
-        }
+        # If executable, run it (honor shebang). Otherwise invoke it with python3.
+        if [ -x "$b" ]; then
+          "$b" -Drelease-safe --prefix "$INSTALL_PREFIX" --llvm-root "${llvm_root_arg}" && return 0 || {
+            echo "Zig build script $b failed; exiting"
+            return 1
+          }
+        else
+          python3 "$b" -Drelease-safe --prefix "$INSTALL_PREFIX" --llvm-root "${llvm_root_arg}" && return 0 || {
+            echo "Zig build script $b failed; exiting"
+            return 1
+          }
+        fi
       fi
     done
     echo "No Zig build script found in $PWD"
