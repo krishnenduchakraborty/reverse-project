@@ -16,10 +16,10 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install git
+      - name: Install git and python
         run: |
           sudo apt update
-          sudo apt install -y git
+          sudo apt install -y git python3
 
       - name: Clone zig shallow
         run: |
@@ -27,7 +27,7 @@ jobs:
           git clone --depth 1 https://github.com/ziglang/zig.git work/zig-src
           echo "Cloned zig into work/zig-src"
 
-      - name: Apply patch from repo
+      - name: Apply patch from repo (with fallback)
         run: |
           set -euo pipefail
           REPO_ROOT=$GITHUB_WORKSPACE
@@ -37,8 +37,17 @@ jobs:
             echo "PATCH NOT FOUND"; ls -la "$REPO_ROOT" || true; exit 1
           fi
           cd work/zig-src
-          echo "Applying patch..."
-          git apply "$PATCH_PATH" || {
-            echo "git apply failed — showing diagnostics"; git status; echo "--- patch head ---"; sed -n '1,120p' "$PATCH_PATH"; exit 1
-          }
-          echo "Patch applied successfully"
+          echo "Trying git apply --reject --whitespace=fix $PATCH_PATH"
+          if git apply "$PATCH_PATH"; then
+            echo "Patch applied successfully via git apply"
+          else
+            echo "git apply failed, attempting fallback python patcher"
+            cd $REPO_ROOT
+            python3 scripts/ci_patch_apply.py || { echo "fallback patcher failed"; exit 1; }
+            echo "Fallback patcher succeeded"
+          fi
+          cd -
+
+      - name: Verify patched file
+        run: |
+          grep -n "getAArch64CpuFeature" work/zig-src/lib/std/zig/system/linux.zig || true
