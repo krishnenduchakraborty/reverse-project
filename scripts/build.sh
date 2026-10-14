@@ -3,7 +3,8 @@ set -euo pipefail
 shopt -s inherit_errexit || true
 
 # REPO_ROOT is the repository root where this script is checked out
-REPO_ROOT="$(pwd)"
+# Prefer GITHUB_WORKSPACE when running on Actions; fallback to current directory
+REPO_ROOT="${GITHUB_WORKSPACE:-$(pwd)}"
 
 echo "Starting Zig Android aarch64 build script"
 echo "REPO_ROOT=${REPO_ROOT}"
@@ -33,11 +34,15 @@ fi
 
 # Apply patch if present in the repo root
 PATCH_PATH="$REPO_ROOT/patches/avoid-mrs.patch"
+echo "Looking for patch at: $PATCH_PATH"
 if [ -f "$PATCH_PATH" ]; then
   echo "Applying patch: $PATCH_PATH"
   cd "$ZIG_DIR"
   git apply "$PATCH_PATH" || {
-    echo "Patch apply failed. Showing git status and attempting 'git apply --reject' for diagnostics:"
+    echo "Patch apply failed. Showing diagnostics:"
+    echo "Current dir: $(pwd)"
+    echo "List repo root files:"; ls -la "$REPO_ROOT" || true
+    echo "Show first 200 lines of patch file:"; sed -n '1,200p' "$PATCH_PATH" || true
     git apply --reject --whitespace=fix "$PATCH_PATH" || true
     git status
     exit 1
@@ -45,6 +50,7 @@ if [ -f "$PATCH_PATH" ]; then
   cd - >/dev/null
 else
   echo "No patch found at $PATCH_PATH; continuing without patch"
+  echo "Listing repository root files:"; ls -la "$REPO_ROOT" || true
 fi
 
 # Build LLVM+Clang for Android using NDK toolchain
