@@ -1,0 +1,53 @@
+name: Simple Build Zig (prebuilt LLVM)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup basic deps
+        run: |
+          sudo apt update
+          sudo apt install -y curl tar unzip python3 python3-pip
+          python3 -m pip install --upgrade pip setuptools
+
+      - name: Download Android NDK
+        run: |
+          mkdir -p ${{ github.workspace }}/work
+          NDK_VER=r25b
+          curl -sSL https://dl.google.com/android/repository/android-ndk-${NDK_VER}-linux.zip -o ndk.zip
+          unzip -q ndk.zip -d ${{ github.workspace }}/work
+          echo "ANDROID_NDK_HOME=${{ github.workspace }}/work/android-ndk-${NDK_VER}" >> $GITHUB_ENV
+
+      - name: Download prebuilt LLVM/Clang
+        run: |
+          mkdir -p ${{ github.workspace }}/work/llvm
+          LLVM_VER=17.0.6
+          curl -sSL https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VER}/clang+llvm-${LLVM_VER}-x86_64-linux-gnu-ubuntu-22.04.tar.xz -o llvm.tar.xz
+          tar -xf llvm.tar.xz -C ${{ github.workspace }}/work/llvm
+          echo "PREBUILT_LLVM_ROOT=${{ github.workspace }}/work/llvm/clang+llvm-${LLVM_VER}-x86_64-linux-gnu-ubuntu-22.04" >> $GITHUB_ENV
+
+      - name: Run simplified build script
+        env:
+          ANDROID_NDK_HOME: ${{ github.workspace }}/work/android-ndk-r25b
+          ANDROID_API_LEVEL: 21
+        run: |
+          echo "PREBUILT_LLVM_ROOT=${PREBUILT_LLVM_ROOT:-<not-set>}"
+          ls -la "${PREBUILT_LLVM_ROOT}" || true
+          ls -la "${PREBUILT_LLVM_ROOT}/bin" || true
+          bash scripts/build.sh
+
+      - name: Upload built zig
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zig-android-aarch64
+          path: work/zig-install/bin || work/zig-install
