@@ -19,7 +19,8 @@ jobs:
       - name: Setup basic deps
         run: |
           sudo apt update
-          sudo apt install -y curl tar python3 python3-distutils unzip
+          sudo apt install -y curl tar python3 python3-pip unzip
+          python3 -m pip install --upgrade pip setuptools
 
       - name: Download Android NDK
         run: |
