@@ -154,7 +154,10 @@ if [ -n "$PREBUILT_LLVM_ROOT" ]; then
   if [ "$rc" -ne 0 ]; then
     if [ "$rc" -eq 2 ]; then
       echo "No Zig build script found; attempting cmake-based build fallback"
-      mkdir -p build.zig && cd build.zig
+      # Ensure a clean out-of-source build directory to avoid cached llvm-config from previous runs
+      rm -rf build.zig && mkdir -p build.zig && cd build.zig
+      # Prefer prebuilt LLVM binaries while keeping NDK clang wrappers available
+      export PATH="$PREBUILT_LLVM_ROOT/bin:$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH"
       cmake -G Ninja "$ZIG_DIR" \
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_INSTALL_PREFIX="$INSTALL_PREFIX" \

@@ -34,9 +34,9 @@ jobs:
 
       - name: Download prebuilt LLVM/Clang
         run: |
-          # Use an official LLVM release with clang and lld included. Adjust version if Zig needs newer.
+          # Use a clang+llvm 21.x release which Zig expects
           mkdir -p ${{ github.workspace }}/work/llvm
-          LLVM_VER=17.0.6
+          LLVM_VER=21.0.0
           curl -sSL https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VER}/clang+llvm-${LLVM_VER}-x86_64-linux-gnu-ubuntu-22.04.tar.xz -o llvm.tar.xz
           tar -xf llvm.tar.xz -C ${{ github.workspace }}/work/llvm
           # Expose PREBUILT_LLVM_ROOT to build script
