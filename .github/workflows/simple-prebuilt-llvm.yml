@@ -35,7 +35,7 @@ jobs:
           wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo gpg --dearmour -o /etc/apt/trusted.gpg.d/llvm.gpg
           echo "deb http://apt.llvm.org/${DIST}/ llvm-toolchain-${DIST}-21 main" | sudo tee /etc/apt/sources.list.d/llvm-21.list
           sudo apt update
-          sudo apt install -y clang-21 lld-21 liblld-21-dev lld-21-dev llvm-21 llvm-21-dev llvm-21-tools libclang-21-dev zlib1g-dev libzstd-dev libxml2-dev
+          sudo apt install -y clang-21 lld-21 liblld-21-dev llvm-21 llvm-21-dev llvm-21-tools libclang-21-dev zlib1g-dev libzstd-dev libxml2-dev
           # Expose paths to the build script
           echo "PREBUILT_LLVM_ROOT=/usr" >> $GITHUB_ENV
           echo "LLVM_CONFIG_EXECUTABLE=/usr/bin/llvm-config-21" >> $GITHUB_ENV
