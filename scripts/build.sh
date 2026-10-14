@@ -162,7 +162,9 @@ if [ -n "$PREBUILT_LLVM_ROOT" ]; then
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_INSTALL_PREFIX="$INSTALL_PREFIX" \
         -DLLVM_ROOT="$PREBUILT_LLVM_ROOT" \
-        -DLLVM_CONFIG_EXECUTABLE="${LLVM_CONFIG_EXECUTABLE:-${PREBUILT_LLVM_ROOT}/bin/llvm-config}"
+        -DLLVM_CONFIG_EXECUTABLE="${LLVM_CONFIG_EXECUTABLE:-${PREBUILT_LLVM_ROOT}/bin/llvm-config}" \
+        -DCLANG_INCLUDE_DIRS="${CLANG_INCLUDE_DIRS:-/usr/lib/llvm-21/include}" \
+        -DLLD_INCLUDE_DIRS="${LLD_INCLUDE_DIRS:-/usr/lib/llvm-21/include}"
       ninja -j$(nproc) install || {
         echo "Alternate Zig cmake build failed. Check logs above for errors."
         exit 1
