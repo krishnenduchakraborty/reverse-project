@@ -2,11 +2,15 @@
 set -euo pipefail
 shopt -s inherit_errexit || true
 
+# REPO_ROOT is the repository root where this script is checked out
+REPO_ROOT="$(pwd)"
+
 echo "Starting Zig Android aarch64 build script"
+echo "REPO_ROOT=${REPO_ROOT}"
 echo "ANDROID_NDK_HOME=${ANDROID_NDK_HOME:-<not-set>}"
 echo "ANDROID_API_LEVEL=${ANDROID_API_LEVEL:-21}"
 echo "INSTALL_PREFIX=${INSTALL_PREFIX:-$(pwd)/zig-install}"
-WORKDIR="$(pwd)/work"
+WORKDIR="${REPO_ROOT}/work"
 ZIG_REPO="https://github.com/ziglang/zig.git"
 ZIG_DIR="$WORKDIR/zig-src"
 LLVM_BUILD_DIR="$WORKDIR/llvm-build"
@@ -27,19 +31,20 @@ if [ ! -d "$ZIG_DIR/zig-llvm-project" ]; then
   git clone --depth 1 https://github.com/llvm/llvm-project.git "$ZIG_DIR/zig-llvm-project"
 fi
 
-# Apply patch if present
-if [ -f patches/avoid-mrs.patch ]; then
-  echo "Applying patch: patches/avoid-mrs.patch"
+# Apply patch if present in the repo root
+PATCH_PATH="$REPO_ROOT/patches/avoid-mrs.patch"
+if [ -f "$PATCH_PATH" ]; then
+  echo "Applying patch: $PATCH_PATH"
   cd "$ZIG_DIR"
-  git apply ../patches/avoid-mrs.patch || {
+  git apply "$PATCH_PATH" || {
     echo "Patch apply failed. Showing git status and attempting 'git apply --reject' for diagnostics:"
-    git apply --reject --whitespace=fix ../patches/avoid-mrs.patch || true
+    git apply --reject --whitespace=fix "$PATCH_PATH" || true
     git status
     exit 1
   }
   cd - >/dev/null
 else
-  echo "No patch found at patches/avoid-mrs.patch; continuing without patch"
+  echo "No patch found at $PATCH_PATH; continuing without patch"
 fi
 
 # Build LLVM+Clang for Android using NDK toolchain
