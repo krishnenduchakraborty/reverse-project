@@ -141,8 +141,9 @@ if [ -n "$PREBUILT_LLVM_ROOT" ]; then
     ls -la . || true
     return 2
   }
-  if ! run_zig_build "$PREBUILT_LLVM_ROOT"; then
-    rc=$?
+  run_zig_build "$PREBUILT_LLVM_ROOT"
+  rc=$?
+  if [ "$rc" -ne 0 ]; then
     if [ "$rc" -eq 2 ]; then
       echo "No Zig build script found; attempting cmake-based build fallback"
       mkdir -p build.zig && cd build.zig
@@ -159,6 +160,7 @@ if [ -n "$PREBUILT_LLVM_ROOT" ]; then
       exit 1
     fi
   fi
+
 else
   echo "Running Zig's build script using built LLVM at $INSTALL_PREFIX"
   python3 ./build -Drelease-safe --prefix "$INSTALL_PREFIX" --llvm-root "$INSTALL_PREFIX" || {
