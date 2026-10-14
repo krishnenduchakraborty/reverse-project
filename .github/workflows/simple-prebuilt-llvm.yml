@@ -27,13 +27,18 @@ jobs:
           unzip -q ndk.zip -d ${{ github.workspace }}/work
           echo "ANDROID_NDK_HOME=${{ github.workspace }}/work/android-ndk-${NDK_VER}" >> $GITHUB_ENV
 
-      - name: Download prebuilt LLVM/Clang
+      - name: Install LLVM 21 (apt)
         run: |
-          mkdir -p ${{ github.workspace }}/work/llvm
-          LLVM_VER=17.0.6
-          curl -sSL https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VER}/clang+llvm-${LLVM_VER}-x86_64-linux-gnu-ubuntu-22.04.tar.xz -o llvm.tar.xz
-          tar -xf llvm.tar.xz -C ${{ github.workspace }}/work/llvm
-          echo "PREBUILT_LLVM_ROOT=${{ github.workspace }}/work/llvm/clang+llvm-${LLVM_VER}-x86_64-linux-gnu-ubuntu-22.04" >> $GITHUB_ENV
+          sudo apt update
+          sudo apt install -y gnupg ca-certificates wget lsb-release
+          DIST=$(lsb_release -cs)
+          wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo gpg --dearmour -o /etc/apt/trusted.gpg.d/llvm.gpg
+          echo "deb http://apt.llvm.org/${DIST}/ llvm-toolchain-${DIST}-21 main" | sudo tee /etc/apt/sources.list.d/llvm-21.list
+          sudo apt update
+          sudo apt install -y clang-21 lld-21 llvm-21 llvm-21-dev llvm-21-tools
+          # Expose paths to the build script
+          echo "PREBUILT_LLVM_ROOT=/usr" >> $GITHUB_ENV
+          echo "LLVM_CONFIG_EXECUTABLE=/usr/bin/llvm-config-21" >> $GITHUB_ENV
 
       - name: Run simplified build script
         env:
