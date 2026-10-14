@@ -1,0 +1,52 @@
+name: Build Zig for Android aarch64 (NDK)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      ANDROID_API_LEVEL: "21"            # minimum Android API level for arm64
+      NDK_VERSION: "r25b"                # change NDK version if desired
+      INSTALL_PREFIX: "${{ github.workspace }}/zig-install"
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup basic deps
+        run: |
+          sudo apt update
+          sudo apt install -y git python3 python3-distutils cmake ninja-build build-essential zip unzip pkg-config libncurses5
+
+      - name: Download Android NDK
+        run: |
+          NDK_ZIP=android-ndk-${{ env.NDK_VERSION }}-linux.zip
+          NDK_URL="https://dl.google.com/android/repository/${NDK_ZIP}"
+          echo "Downloading NDK from $NDK_URL"
+          wget -q --show-progress $NDK_URL -O $NDK_ZIP
+          unzip -q $NDK_ZIP -d $HOME
+          echo "ANDROID_NDK_HOME=$HOME/android-ndk-${{ env.NDK_VERSION }}" >> $GITHUB_ENV
+
+      - name: Run build script
+        env:
+          ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
+          ANDROID_API_LEVEL: ${{ env.ANDROID_API_LEVEL }}
+          INSTALL_PREFIX: ${{ env.INSTALL_PREFIX }}
+        run: |
+          chmod +x ./scripts/build.sh
+          ./scripts/build.sh
+
+      - name: Upload built zig
+        uses: actions/upload-artifact@v4
+        with:
+          name: zig-android-aarch64
+          path: |
+            ${{ env.INSTALL_PREFIX }}/bin/zig
+            ${{ env.INSTALL_PREFIX }}/bin/* || true

@@ -1,0 +1,42 @@
+From: user <user@example.com>
+Date: 2026-10-14
+Subject: [patch] Safer CPU feature detect on Android (avoid privileged MRS)
+
+--- a/src/stage1/cpu_detect.c
++++ b/src/stage1/cpu_detect.c
+@@
+-    // direct system register reads (EL1) - can SIGILL on Android EL0
+-    uint64_t midr = 0;
+-    __asm__ volatile("mrs %0, MIDR_EL1" : "=r"(midr));
+-    detect_from_midr(midr);
++    // On Android user-mode (EL0) reading MIDR_EL1 via MRS is privileged and will cause SIGILL.
++    // Use getauxval(AT_HWCAP) and /proc/cpuinfo as a safe fallback.
++#if defined(__ANDROID__)
++    #include <sys/auxv.h>
++    unsigned long hwcap = 0;
++    #if defined(AT_HWCAP)
++        hwcap = getauxval(AT_HWCAP);
++    #endif
++    if (hwcap != 0) {
++        detect_from_hwcap(hwcap);
++    } else {
++        FILE *f = fopen("/proc/cpuinfo", "r");
++        if (f) {
++            char buf[512];
++            while (fgets(buf, sizeof(buf), f)) {
++                if (strstr(buf, "CPU part")) {
++                    detect_from_cpuinfo_line(buf);
++                }
++            }
++            fclose(f);
++        } else {
++            // last resort: assume conservative baseline
++            detect_from_cpuinfo_line("CPU part : fallback");
++        }
++    }
++#else
++    // non-Android: existing behavior (direct MRS allowed)
++    uint64_t midr = 0;
++    __asm__ volatile("mrs %0, MIDR_EL1" : "=r"(midr));
++    detect_from_midr(midr);
++#endif
