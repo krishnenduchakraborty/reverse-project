@@ -116,10 +116,27 @@ fi
 # If PREBUILT_LLVM_ROOT is provided, point Zig build to it. Otherwise use INSTALL_PREFIX where we installed LLVM
 if [ -n "$PREBUILT_LLVM_ROOT" ]; then
   echo "Running Zig's build script using prebuilt LLVM at $PREBUILT_LLVM_ROOT"
-  python3 ./build -Drelease-safe --prefix "$INSTALL_PREFIX" --llvm-root "$PREBUILT_LLVM_ROOT" || {
+  # Try common build script names (./build, ./build.py, ./build.sh)
+  run_zig_build() {
+    local llvm_root_arg="$1"
+    for b in ./build ./build.py ./build.sh; do
+      if [ -f "$b" ]; then
+        echo "Found Zig build script: $b"
+        python3 "$b" -Drelease-safe --prefix "$INSTALL_PREFIX" --llvm-root "${llvm_root_arg}" && return 0 || {
+          echo "Zig build script $b failed; exiting"
+          return 1
+        }
+      fi
+    done
+    echo "No Zig build script found in $PWD"
+    ls -la . || true
+    return 2
+  }
+  run_zig_build "$PREBUILT_LLVM_ROOT" || {
     echo "Zig build script failed when using prebuilt LLVM. Check logs above for errors.";
     exit 1
   }
+
 else
   echo "Running Zig's build script using built LLVM at $INSTALL_PREFIX"
   python3 ./build -Drelease-safe --prefix "$INSTALL_PREFIX" --llvm-root "$INSTALL_PREFIX" || {
