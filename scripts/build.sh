@@ -141,8 +141,10 @@ if [ -n "$PREBUILT_LLVM_ROOT" ]; then
     ls -la . || true
     return 2
   }
+  set +e
   run_zig_build "$PREBUILT_LLVM_ROOT"
   rc=$?
+  set -e
   if [ "$rc" -ne 0 ]; then
     if [ "$rc" -eq 2 ]; then
       echo "No Zig build script found; attempting cmake-based build fallback"
