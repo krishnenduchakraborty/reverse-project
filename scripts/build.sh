@@ -45,7 +45,8 @@ fi
 # Apply patch if present in the repo root
 PATCH_PATH="$REPO_ROOT/patches/avoid-mrs.patch"
 echo "Looking for patch at: $PATCH_PATH"
-if [ -f "$PATCH_PATH" ]; then
+# Only attempt to apply the patch if the file exists and is non-empty
+if [ -f "$PATCH_PATH" ] && [ -s "$PATCH_PATH" ]; then
   echo "Applying patch: $PATCH_PATH"
   cd "$ZIG_DIR"
   if git apply "$PATCH_PATH"; then
@@ -53,12 +54,20 @@ if [ -f "$PATCH_PATH" ]; then
   else
     echo "git apply failed, attempting fallback python patcher"
     cd "$REPO_ROOT"
-    python3 scripts/ci_patch_apply.py || { echo "fallback patcher failed"; exit 1; }
-    echo "Fallback patcher succeeded"
+    if python3 scripts/ci_patch_apply.py "$PATCH_PATH"; then
+      echo "Fallback patcher succeeded"
+    else
+      echo "fallback patcher failed; aborting"
+      exit 1
+    fi
   fi
   cd - >/dev/null
 else
-  echo "No patch found at $PATCH_PATH; continuing without patch"
+  if [ -f "$PATCH_PATH" ]; then
+    echo "Patch file exists but is empty: $PATCH_PATH; skipping patch"
+  else
+    echo "No patch found at $PATCH_PATH; continuing without patch"
+  fi
   echo "Listing repository root files:"; ls -la "$REPO_ROOT" || true
 fi
 
