@@ -32,15 +32,77 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+name: Build Zig for Android (prebuilt LLVM)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup basic deps
+        run: |
+          sudo apt update
+          sudo apt install -y curl tar unzip python3 python3-pip cmake ninja-build build-essential
+          python3 -m pip install --upgrade pip setuptools
+
+      - name: Download Android NDK
+        run: |
+          mkdir -p ${{ github.workspace }}/work
+          NDK_VER=r25b
+          curl -sSL https://dl.google.com/android/repository/android-ndk-${NDK_VER}-linux.zip -o ndk.zip
+          unzip -q ndk.zip -d ${{ github.workspace }}/work
+          echo "NDK at: ${{ github.workspace }}/work/android-ndk-${NDK_VER}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Download prebuilt LLVM/Clang
         run: |
-          # Use a clang+llvm 21.x release which Zig expects
+          # Use a clang+llvm release that exists (17.0.6) — compatible prebuilt found on GitHub releases
           mkdir -p ${{ github.workspace }}/work/llvm
-          LLVM_VER=21.0.0
+          LLVM_VER=17.0.6
           curl -sSL https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VER}/clang+llvm-${LLVM_VER}-x86_64-linux-gnu-ubuntu-22.04.tar.xz -o llvm.tar.xz
           tar -xf llvm.tar.xz -C ${{ github.workspace }}/work/llvm
           # Expose PREBUILT_LLVM_ROOT to build script
           echo "PREBUILT_LLVM_ROOT=${{ github.workspace }}/work/llvm/clang+llvm-${LLVM_VER}-x86_64-linux-gnu-ubuntu-22.04" >> $GITHUB_ENV
+
+      - name: Run build script (prebuilt LLVM)
+        env:
+          ANDROID_NDK_HOME: ${{ github.workspace }}/work/android-ndk-r25b
+          ANDROID_API_LEVEL: 21
+        run: |
+          echo "Using PREBUILT_LLVM_ROOT from environment (set in previous step via GITHUB_ENV): ${PREBUILT_LLVM_ROOT:-<not-set>}"
+          echo "PREBUILT_LLVM_ROOT=${PREBUILT_LLVM_ROOT}"
+          echo "ls -la PREBUILT_LLVM_ROOT:"
+          ls -la "${PREBUILT_LLVM_ROOT}" || true
+          echo "ls -la PREBUILT_LLVM_ROOT/bin:"
+          ls -la "${PREBUILT_LLVM_ROOT}/bin" || true
+          echo "Zig repo top-level files:"
+          ls -la "${{ github.workspace }}" || true
+          echo "work/zig-src top-level files:"
+          ls -la "${{ github.workspace }}/work/zig-src" || true
+          echo "python3 version and which:"
+          python3 --version || true
+          which python3 || true
+          echo "Now invoking build script (scripts/build.sh)..."
+          bash scripts/build.sh
+
+      - name: Upload built zig
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zig-android-aarch64
+          path: work/zig-install/bin || work/zig-install
 
       - name: Run build script (prebuilt LLVM)
         env:
