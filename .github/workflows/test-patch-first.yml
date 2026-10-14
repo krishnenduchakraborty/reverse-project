@@ -1,0 +1,44 @@
+name: Test apply patch to Zig
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  test-patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Install git
+        run: |
+          sudo apt update
+          sudo apt install -y git
+
+      - name: Clone zig shallow
+        run: |
+          mkdir -p work
+          git clone --depth 1 https://github.com/ziglang/zig.git work/zig-src
+          echo "Cloned zig into work/zig-src"
+
+      - name: Apply patch from repo
+        run: |
+          set -euo pipefail
+          REPO_ROOT=$GITHUB_WORKSPACE
+          PATCH_PATH="$REPO_ROOT/patches/avoid-mrs.patch"
+          echo "Looking for patch at: $PATCH_PATH"
+          if [ ! -f "$PATCH_PATH" ]; then
+            echo "PATCH NOT FOUND"; ls -la "$REPO_ROOT" || true; exit 1
+          fi
+          cd work/zig-src
+          echo "Applying patch..."
+          git apply "$PATCH_PATH" || {
+            echo "git apply failed — showing diagnostics"; git status; echo "--- patch head ---"; sed -n '1,120p' "$PATCH_PATH"; exit 1
+          }
+          echo "Patch applied successfully"
