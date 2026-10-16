@@ -1,0 +1,24 @@
+name: Compile Snapdragon 450 Binary
+on: [push, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Zig Compiler
+        uses: mlugg/setup-zig@v2
+        with:
+          version: 0.16.0
+
+      - name: Static Cross-Compilation for Cortex-A53
+        run: |
+          zig build-exe tmp_test_main.zig -target aarch64-linux-musl -mcpu cortex_a53 -O ReleaseSafe
+          
+      - name: Upload Clean Binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: termux-working-binary
+          path: tmp_test_main
