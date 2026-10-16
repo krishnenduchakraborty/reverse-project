@@ -1,0 +1,86 @@
+name: CI Build Zig for Android aarch64 (cross)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 720
+    env:
+      ANDROID_API_LEVEL: "21"
+      NDK_VERSION: "r25b"
+      INSTALL_PREFIX: "${{ github.workspace }}/zig-install"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup basic deps
+        run: |
+          sudo apt update
+          sudo apt install -y git python3 python3-pip python3-venv cmake ninja-build build-essential zip unzip pkg-config libncurses-dev wget
+
+      - name: Download Android NDK
+        run: |
+          mkdir -p ${{ github.workspace }}/work
+          NDK_ZIP=android-ndk-${{ env.NDK_VERSION }}-linux.zip
+          NDK_URL="https://dl.google.com/android/repository/${NDK_ZIP}"
+          echo "Downloading NDK from $NDK_URL"
+          wget -q --show-progress $NDK_URL -O $NDK_ZIP
+          unzip -q $NDK_ZIP -d ${{ github.workspace }}/work
+          echo "ANDROID_NDK_HOME=${{ github.workspace }}/work/android-ndk-${{ env.NDK_VERSION }}" >> $GITHUB_ENV
+
+      - name: Clone Zig (shallow)
+        run: |
+          mkdir -p work
+          git clone --depth 1 https://github.com/ziglang/zig.git work/zig-src
+          git clone --depth 1 https://github.com/llvm/llvm-project.git work/zig-src/zig-llvm-project
+
+      - name: Apply avoid-mrs patch if present
+        run: |
+          if [ -f patches/avoid-mrs.patch ] && [ -s patches/avoid-mrs.patch ]; then
+            echo "Attempting git apply"
+            set +e
+            (cd work/zig-src && git apply "${{ github.workspace }}/patches/avoid-mrs.patch")
+            rc=$?
+            set -e
+            if [ $rc -ne 0 ]; then
+              echo "git apply failed, falling back to python patcher"
+              python3 scripts/ci_patch_apply.py "${{ github.workspace }}/patches/avoid-mrs.patch" || true
+            fi
+          else
+            echo "No avoid-mrs.patch found; continuing"
+          fi
+
+      - name: Run Zig build (cross-compile for Android)
+        env:
+          ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
+          ANDROID_API_LEVEL: ${{ env.ANDROID_API_LEVEL }}
+          INSTALL_PREFIX: ${{ env.INSTALL_PREFIX }}
+        run: |
+          echo "PREBUILT_LLVM_ROOT=${PREBUILT_LLVM_ROOT:-<not-set>}"
+          # Ensure PREBUILT_LLVM_ROOT is unset so build.sh builds LLVM for Android toolchain
+          unset PREBUILT_LLVM_ROOT || true
+          chmod +x ./scripts/build.sh
+          ./scripts/build.sh 2>&1 | tee build.log || true
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
+
+      - name: Upload built zig
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zig-android-aarch64
+          path: |
+            ${{ env.INSTALL_PREFIX }}/bin/zig
+            ${{ env.INSTALL_PREFIX }}/bin/* || true
