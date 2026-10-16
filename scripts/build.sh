@@ -45,7 +45,8 @@ fi
 # Apply patch if present in the repo root
 PATCH_PATH="$REPO_ROOT/patches/avoid-mrs.patch"
 echo "Looking for patch at: $PATCH_PATH"
-if [ -f "$PATCH_PATH" ]; then
+# Only attempt to apply the patch if the file exists and is non-empty
+if [ -f "$PATCH_PATH" ] && [ -s "$PATCH_PATH" ]; then
   echo "Applying patch: $PATCH_PATH"
   cd "$ZIG_DIR"
   if git apply "$PATCH_PATH"; then
@@ -53,12 +54,20 @@ if [ -f "$PATCH_PATH" ]; then
   else
     echo "git apply failed, attempting fallback python patcher"
     cd "$REPO_ROOT"
-    python3 scripts/ci_patch_apply.py || { echo "fallback patcher failed"; exit 1; }
-    echo "Fallback patcher succeeded"
+    if python3 scripts/ci_patch_apply.py "$PATCH_PATH"; then
+      echo "Fallback patcher succeeded"
+    else
+      echo "fallback patcher failed; aborting"
+      exit 1
+    fi
   fi
   cd - >/dev/null
 else
-  echo "No patch found at $PATCH_PATH; continuing without patch"
+  if [ -f "$PATCH_PATH" ]; then
+    echo "Patch file exists but is empty: $PATCH_PATH; skipping patch"
+  else
+    echo "No patch found at $PATCH_PATH; continuing without patch"
+  fi
   echo "Listing repository root files:"; ls -la "$REPO_ROOT" || true
 fi
 
@@ -155,14 +164,16 @@ if [ -n "$PREBUILT_LLVM_ROOT" ]; then
     if [ "$rc" -eq 2 ]; then
       echo "No Zig build script found; attempting cmake-based build fallback"
       # Ensure a clean out-of-source build directory to avoid cached llvm-config from previous runs
-      rm -rf build.zig && mkdir -p build.zig && cd build.zig
+      rm -rf build.zig-build && mkdir -p build.zig-build && cd build.zig-build
       # Prefer prebuilt LLVM binaries while keeping NDK clang wrappers available
       export PATH="$PREBUILT_LLVM_ROOT/bin:$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH"
       cmake -G Ninja "$ZIG_DIR" \
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_INSTALL_PREFIX="$INSTALL_PREFIX" \
         -DLLVM_ROOT="$PREBUILT_LLVM_ROOT" \
-        -DLLVM_CONFIG_EXECUTABLE="$PREBUILT_LLVM_ROOT/bin/llvm-config"
+        -DLLVM_CONFIG_EXECUTABLE="${LLVM_CONFIG_EXECUTABLE:-${PREBUILT_LLVM_ROOT}/bin/llvm-config}" \
+        -DCLANG_INCLUDE_DIRS="${CLANG_INCLUDE_DIRS:-/usr/lib/llvm-21/include}" \
+        -DLLD_INCLUDE_DIRS="${LLD_INCLUDE_DIRS:-/usr/lib/llvm-21/include}"
       ninja -j$(nproc) install || {
         echo "Alternate Zig cmake build failed. Check logs above for errors."
         exit 1
